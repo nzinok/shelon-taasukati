@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>שאלון אבחון תעסוקתי</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #4facfe; --primary-purple: #667eea; --submit-purple-start: #8854d0;
+            --submit-purple-end: #a55eea; --light-gray: #f0f4f8; --dark-text: #334155;
+            --border-color: #ddd; --error-red: #e53935; --success-green: #27ae60;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Rubik', sans-serif; background: linear-gradient(135deg, var(--primary-purple) 0%, #764ba2 100%); min-height: 100vh; padding: 20px; color: var(--dark-text); }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); overflow: hidden; }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-out { animation: fadeOut 0.25s ease-out forwards; }
+        .fade-in { animation: fadeIn 0.3s ease-in forwards; }
+        .header { background: linear-gradient(45deg, var(--primary-blue) 0%, #00f2fe 100%); color: white; padding: 30px; text-align: center; position: relative; z-index: 10; }
+        #progress-header { padding: 10px 0; transition: all 0.3s ease-in-out; }
+        .progress-header-sticky { position: fixed; top: 0; left: 0; right: 0; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 10px 20px; z-index: 1000; width: 100%; max-width: 800px; margin: 0 auto; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+        .progress-header-sticky .progress-container, .progress-header-sticky .section-progress-container { background: rgba(0,0,0,0.1); }
+        .progress-header-sticky .progress-bar { background: var(--primary-blue); }
+        .progress-header-sticky .section-progress-bar { background: var(--primary-purple); }
+        .progress-header-sticky .section-progress-info, .progress-header-sticky #sectionInfo { color: var(--dark-text); }
+        .progress-container { background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; margin-top: 20px; overflow: hidden; }
+        .progress-bar { height: 100%; background: #fff; border-radius: 4px; transition: width 0.3s ease; width: 0%; }
+        .section-progress-container { background: rgba(255,255,255,0.2); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden; }
+        .section-progress-bar { height: 100%; background: rgba(255,255,255,0.8); border-radius: 3px; transition: width 0.3s ease; width: 0%; }
+        .section-progress-info { font-size: 0.8rem; margin-top: 5px; color: rgba(255,255,255,0.9); }
+        .content-area { padding: 20px 40px 40px 40px; }
+        .btn { background: linear-gradient(45deg, var(--primary-blue) 0%, #00f2fe 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: 500; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin: 10px; }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .submit-btn { background: linear-gradient(45deg, var(--submit-purple-start) 0%, var(--submit-purple-end) 100%); }
+        #introScreen { text-align: center; }
+        #introTitle { font-size: 2rem; font-weight: 700; margin-bottom: 20px; color: var(--dark-text); }
+        #introBody { text-align: right; white-space: pre-wrap; margin: 20px 0; }
+        .question-area { text-align: right; display: none; }
+        .category-section { margin-bottom: 40px; padding: 30px; background: #fafafa; border: 1px solid #eee; border-radius: 15px; }
+        .category-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; padding-bottom: 10px; border-bottom: 3px solid var(--primary-blue); display: inline-block; }
+        .question, .file-upload-block { margin-bottom: 25px; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); transition: box-shadow 0.3s, border-color 0.3s, background-color 0.3s; border: 1px solid transparent; }
+        .question-text, .file-upload-title { font-size: 1.2rem; margin-bottom: 15px; line-height: 1.5; text-align: center; }
+        .question-input input[type="text"], .question-input input[type="number"], .question-input textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; font-family: 'Rubik', sans-serif; }
+        .instruction-text { padding: 15px 20px; background-color: var(--light-gray); border-right: 5px solid var(--primary-purple); margin-bottom: 20px; border-radius: 8px; font-size: 1rem; line-height: 1.6; }
+        .required-mark { color: var(--error-red); font-weight: bold; margin-left: 4px; }
+        .question.invalid, .file-upload-block.invalid { border-color: var(--error-red); box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2); }
+        .error-message-inline { color: var(--error-red); margin-top: 8px; font-size: 0.9rem; min-height: 1.2em; text-align: center; transition: all 0.3s; }
+        .error-message-inline:not(:empty)::before { content: '⚠️ '; }
+        .rating-group { display: flex; justify-content: center; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+        .rating-label-text { margin: 0 15px; font-size: 0.9rem; color: #555; }
+        .rating-boxes { display: flex; gap: 10px; }
+        .rating-box { width: 45px; height: 45px; border: 2px solid var(--border-color); border-radius: 8px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.2s ease; font-weight: bold; }
+        .rating-box.selected { background-color: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+        .checkbox-group { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        .checkbox-group input[type="checkbox"] { display: none; }
+        .checkbox-group .tag-label { display: block; text-align: center; padding: 10px 20px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: all 0.2s ease-in-out; background-color: #f9f9f9; }
+        .checkbox-group input[type="checkbox"]:checked + .tag-label { background-color: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+        .custom-select { position: relative; }
+        .custom-select-trigger { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; font-family: 'Rubik', sans-serif; cursor: pointer; background-color: white; }
+        .custom-select-trigger::after { content: '▼'; font-size: 0.8rem; color: #888; transition: transform 0.2s ease; }
+        .custom-select.open .custom-select-trigger::after { transform: rotate(180deg); }
+        .custom-options { position: absolute; top: 105%; left: 0; right: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); z-index: 100; max-height: 200px; overflow-y: auto; display: none; }
+        .custom-select.open .custom-options { display: block; }
+        .custom-option { padding: 12px; cursor: pointer; transition: background-color 0.2s; font-family: 'Rubik', sans-serif; font-size: 1rem;}
+        .custom-option:hover { background-color: var(--light-gray); }
+        .custom-option.selected { background-color: var(--primary-blue); color: white; }
+        .hidden-other-input { display: none; margin-top: 10px; }
+        .file-upload-title { font-size: 1.2rem; margin-bottom: 15px; line-height: 1.5; text-align: center; font-weight: 500; }
+        .file-drop-area { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; border: 2px dashed var(--border-color); border-radius: 8px; transition: background-color 0.2s ease; background-color: #f9f9f9; text-align: center; }
+        .file-drop-area.dragover { background-color: var(--light-gray); border-color: var(--primary-blue); }
+        .file-drop-area input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
+        .file-drop-icon { font-size: 2rem; color: var(--primary-blue); }
+        .file-drop-message { margin: 10px 0; font-weight: 500; }
+        .file-name-display { font-size: 0.9rem; font-weight: bold; word-break: break-all; margin-top: 10px; }
+        .file-name-display.success { color: var(--success-green); }
+        .file-name-display.error { color: var(--error-red); }
+        .spinner-inline { display: inline-block; border: 2px solid #f3f3f3; border-top: 2px solid var(--primary-blue); border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; margin-left: 8px; vertical-align: middle; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-blue); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-message { background: #fee; color: var(--error-red); padding: 15px; border-radius: 8px; margin: 20px 0; display: none; white-space: pre-wrap; }
+        .button-group { display: flex; justify-content: space-between; width: 100%; margin-top: 30px; }
+        #save-indicator { position: fixed; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; transition: opacity 0.5s; opacity: 0; z-index: 1000; }
+        .draft-dialog { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; animation: fadeIn 0.3s; }
+        .draft-dialog-content { background: white; border-radius: 10px; padding: 20px; max-width: 90%; width: 500px; text-align: center; }
+        .draft-dialog-buttons { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div id="container" class="container">
+        <div class="header">
+            <h1 id="headerTitle">שאלון אבחון תעסוקתי</h1>
+            <div id="progress-header">
+                <div id="sectionInfo" style="margin-top:10px; font-size:0.9rem;"></div>
+                <div class="progress-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+                <div id="section-progress-container-wrapper"></div>
+            </div>
+        </div>
+        <div id="mainArea" class="content-area">
+            <div id="loading" style="display:none;"><div class="spinner"></div><p id="loadingText">טוען שאלון...</p></div>
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" style="display:none;"><h2>תודה!</h2><p>תשובותיך נשמרו בהצלחה.</p></div>
+            <div id="introScreen"><h2 id="introTitle"></h2><div id="introBody" class="instruction-text"></div><button id="startBtn" class="btn">התחל את השאלון</button></div>
+            <div id="questionnaireContent" class="question-area">
+                <div id="questionsContainer"></div>
+                <div class="button-group">
+                    <button id="prevBtn" class="btn">הקודם</button>
+                    <button id="nextBtn" class="btn">הבא</button>
+                    <button id="submitBtn" class="btn submit-btn" style="display:none;">שליחת השאלון</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="save-indicator"></div>
+
+    <script>
+        // --- CONFIGURATION ---
+        // !!! הדבק כאן את כתובת ה-Web App שקיבלת בשלב 2 !!!
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxypkDOktuizRUK0kfifTXNNlYtwiB8lfn3VPOq-1QiRmnCOmhrPleQLDF9o9A8NX3PTQ/exec'; 
+
+        // --- GLOBAL STATE ---
+        let questionnaireData = {}, currentSection = 0, sections = [], answers = {};
+        let nextSectionJump = null, sectionHistory = [], autosaveInterval = null;
+        let stickyHeaderPoint = 0;
+
+        // --- UI ELEMENTS ---
+        const ui = {
+            container: document.getElementById('container'), mainArea: document.getElementById('mainArea'),
+            intro: document.getElementById('introScreen'), introTitle: document.getElementById('introTitle'),
+            introBody: document.getElementById('introBody'), headerTitle: document.getElementById('headerTitle'),
+            loading: document.getElementById('loading'), loadingText: document.getElementById('loadingText'),
+            error: document.getElementById('errorMessage'), success: document.getElementById('successMessage'),
+            questionnaire: document.getElementById('questionnaireContent'), questionsContainer: document.getElementById('questionsContainer'),
+            startBtn: document.getElementById('startBtn'), prevBtn: document.getElementById('prevBtn'),
+            nextBtn: document.getElementById('nextBtn'), submitBtn: document.getElementById('submitBtn'),
+            sectionInfo: document.getElementById('sectionInfo'), progressBar: document.getElementById('progressBar'),
+            saveIndicator: document.getElementById('save-indicator'), sectionProgressWrapper: document.getElementById('section-progress-container-wrapper'),
+            progressHeader: document.getElementById('progress-header')
+        };
+        
+        // --- HELPER FUNCTIONS ---
+        function sanitizeTextForKey(text) {
+         if (typeof text !== 'string') return '';
+         return text.replace(/[\r\n\t]/g, ' ').replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+        }
+
+        function scrollToNext(currentElement) {
+            const sectionName = sections[currentSection];
+            const shouldScroll = questionnaireData[sectionName]?.autoScroll;
+            if (shouldScroll === false || !currentElement) return;
+
+            const allQuestions = Array.from(ui.questionsContainer.querySelectorAll('.question, .file-upload-block'));
+            const currentIndex = allQuestions.findIndex(el => el === currentElement);
+            if (currentIndex > -1 && currentIndex < allQuestions.length - 1) {
+                const nextQuestionEl = allQuestions[currentIndex + 1];
+                setTimeout(() => { nextQuestionEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200);
+            }
+        }
+
+        // --- INITIALIZATION ---
+        async function init() {
+            showView(ui.loading);
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=getQuestionnaireData`);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                const data = await response.json();
+                onDataReceived(data);
+            } catch (error) {
+                onLoadError(error);
+            }
+        }
+        
+        function onDataReceived(response) {
+            if (!response.success) { return onLoadError(new Error(response.message)); }
+            if (response.introduction) {
+                ui.introTitle.textContent = response.introduction.title;
+                ui.headerTitle.textContent = response.introduction.title;
+                ui.introBody.textContent = response.introduction.body;
+            }
+            questionnaireData = response.data;
+            sections = response.sectionsOrder;
+            sectionHistory = [];
+            if (sections.length === 0) { return onLoadError(new Error('לא נמצאו מקטעים בשאלון.')); }
+            showView(ui.intro);
+            setTimeout(() => {
+                const mainHeader = document.querySelector('.header');
+                if (mainHeader) { stickyHeaderPoint = mainHeader.offsetTop + mainHeader.offsetHeight; }
+            }, 100);
+        }
+
+        function startQuestionnaire() {
+            if (!checkForDraft()) {
+                currentSection = 0;
+                displayCurrentSection();
+                startAutosave();
+            }
+        }
+        
+        // --- DISPLAY & RENDERING (Same as original, no changes needed here) ---
+        function displayCurrentSection() { showView(ui.questionnaire); const sectionName = sections[currentSection]; let items = questionnaireData[sectionName].items || []; if (questionnaireData[sectionName].randomize) { items = shuffleArray([...items]); } let html = `<div class="category-section"><h3 class="category-title">${sectionName}</h3>`; for (let i = 0; i < items.length; i++) { const item = items[i]; const nextItem = (i + 1 < items.length) ? items[i + 1] : null; if (item.type.toLowerCase() === 'הוראות' && nextItem && nextItem.type.toLowerCase() === 'קובץ') { html += buildCombinedFileUploadHtml(item, nextItem, sectionName, i); i++; } else { html += buildItemHtml(item, sectionName, i); } } ui.questionsContainer.innerHTML = html; initCustomControls(); updateProgressBars(); updateNavigation(); }
+        function buildItemHtml(item, sectionName, index) { const sanitizedQuestionText = sanitizeTextForKey(item.question); const answerKey = `${sectionName}: ${sanitizedQuestionText}`; const safeId = `q-${currentSection}-${index}`; const requiredMark = item.required ? `<span class="required-mark">*</span>` : ''; const itemType = item.type.toLowerCase(); if (itemType === 'הוראות') return `<div class="instruction-text">${item.text}</div>`; let html = `<div class="question" data-required="${item.required || false}" data-key="${answerKey}"> <div class="question-text">${item.question}${requiredMark}</div> <div class="question-input">`; const currentValue = answers[answerKey]; if (itemType.startsWith('טקסט') || itemType.startsWith('מספר') || itemType.startsWith('שם')) { const inputType = itemType.startsWith('מספר') ? 'number' : 'text'; const tag = itemType.startsWith('טקסט') ? `<textarea oninput="handleTyping(this)" onblur="handleTextBlur(this)" rows="4">${currentValue || ''}</textarea>` : `<input type="${inputType}" value="${currentValue || ''}" oninput="handleTyping(this)" onblur="handleTextBlur(this)">`; html += tag; } else if (itemType.startsWith('דירוג')) { html += buildRatingHtml(item, currentValue, answerKey); } else if (itemType.startsWith('בחירה מרובה')) { html += buildCheckboxHtml(item, currentValue, answerKey, safeId); } else if (itemType.startsWith('בחירה מתוך רשימה')) { html += buildSelectHtml(item, currentValue, answerKey, safeId); } else if (itemType.startsWith('קובץ')) { html += buildFileUploadHtml({question: item.question, required: item.required}, answerKey, safeId); } else { html += `<input type="text" value="${currentValue || ''}" oninput="handleTyping(this)" onblur="handleTextBlur(this)">`; } return html + `</div><div class="error-message-inline"></div></div>`; }
+        function buildRatingHtml(item, currentValue, answerKey) { const min = item.ratingConfig?.min || 1; const max = item.ratingConfig?.max || 5; let html = `<div class="rating-group"><span class="rating-label-text">כלל לא</span><div class="rating-boxes" data-key="${answerKey}">`; for (let j = min; j <= max; j++) { html += `<div class="rating-box ${currentValue == j ? 'selected' : ''}" onclick="handleRatingClick(this)" data-value="${j}">${j}</div>`; } return html + `</div><span class="rating-label-text">מאוד</span></div>`; }
+        function buildCheckboxHtml(item, currentValue, answerKey, safeId) { const limitMatch = item.type.match(/הגבלה:\s*(\d+)/); const limit = limitMatch ? parseInt(limitMatch[1], 10) : 0; const currentValues = Array.isArray(currentValue) ? currentValue : (currentValue ? String(currentValue).split(', ') : []); let html = `<div class="checkbox-group" id="${safeId}" data-limit="${limit}" data-key="${answerKey}">`; (item.options || []).forEach(opt => { html += `<label> <input type="checkbox" name="${safeId}_option" value="${opt}" ${currentValues.includes(opt) ? 'checked' : ''} onclick="handleCheckboxClick(this)"> <span class="tag-label">${opt}</span> </label>`; }); html += `</div>`; return html; }
+        function buildSelectHtml(item, currentValue, answerKey, safeId) { let currentText = 'בחר...'; if(currentValue) currentText = currentValue.startsWith('אחר: ') ? 'אחר' : currentValue; let html = `<div class="custom-select" data-answer-key="${answerKey}" data-safe-id="${safeId}" id="select_${safeId}"> <div class="custom-select-trigger" tabindex="0">${currentText}</div> <div class="custom-options">`; (item.options || []).forEach(opt => { html += `<div class="custom-option" data-value="${opt}">${opt}</div>`; }); html += ` </div></div>`; if ((item.options || []).includes('אחר')) { const otherText = (currentValue && currentValue.startsWith('אחר: ')) ? currentValue.replace('אחר: ', '') : ''; const displayStyle = (currentText === 'אחר') ? 'display:block;' : ''; html += `<input type="text" id="other_${safeId}" class="hidden-other-input" style="${displayStyle}" placeholder="אנא פרט..." value="${otherText}" oninput="handleTyping(this)" onblur="handleTextBlur(this)">`; } return html; }
+        function buildFileUploadHtml(item, answerKey, safeId) { const currentValue = answers[answerKey]; const fileName = (currentValue && currentValue.filename) ? currentValue.filename : ''; const requiredMark = item.required ? `<span class="required-mark">*</span>` : ''; const safeAnswerKeyForAttr = JSON.stringify(answerKey); return `<div class="file-upload-block" data-required="${item.required || false}" data-key="${answerKey}"> <div class="file-upload-title">${item.question}${requiredMark}</div> <label class="file-drop-area" id="drop-area-${safeId}"> <input type="file" onchange='handleFileSelect(this, ${safeAnswerKeyForAttr}, "${safeId}")'> <div class="file-drop-icon">📎</div> <div class="file-drop-message">גרור קובץ לכאן או לחץ לבחירה</div> <div class="file-name-display ${fileName ? 'success' : ''}" id="file-name-${safeId}">${fileName}</div> </label> <div class="error-message-inline"></div> </div>`; }
+        function buildCombinedFileUploadHtml(instructionItem, fileItem, sectionName, index) { const sanitizedQuestionText = sanitizeTextForKey(fileItem.question); const answerKey = `${sectionName}: ${sanitizedQuestionText}`; const safeId = `q-${currentSection}-${index}`; const currentValue = answers[answerKey]; const fileName = currentValue ? currentValue.filename : ''; const requiredMark = fileItem.required ? `<span class="required-mark">*</span>` : ''; const safeAnswerKeyForAttr = JSON.stringify(answerKey); return `<div class="question" data-required="${fileItem.required || false}" data-key="${answerKey}"> <div class="file-upload-block"> <div class="file-upload-title">${instructionItem.text}</div> <label class="file-drop-area" id="drop-area-${safeId}"> <input type="file" onchange='handleFileSelect(this, ${safeAnswerKeyForAttr}, "${safeId}")'> <div class="file-drop-icon">📎</div> <div class="file-drop-message">${fileItem.question}${requiredMark}</div> <div class="file-name-display" id="file-name-${safeId}">${fileName}</div> </label> </div> <div class="error-message-inline"></div> </div>`; }
+        function initCustomControls() { document.querySelectorAll('.custom-select').forEach(wrapper => { const trigger = wrapper.querySelector('.custom-select-trigger'); const options = wrapper.querySelectorAll('.custom-option'); const safeId = wrapper.dataset.safeId; trigger.addEventListener('click', () => wrapper.classList.toggle('open')); options.forEach(option => { option.addEventListener('click', (e) => { e.stopPropagation(); trigger.textContent = option.textContent; wrapper.classList.remove('open'); handleSelectChange(option, wrapper, safeId); }); }); }); window.addEventListener('click', e => { if (!e.target.closest('.custom-select')) { document.querySelectorAll('.custom-select.open').forEach(w => w.classList.remove('open')); } }); document.querySelectorAll('.file-drop-area').forEach(area => { ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => area.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); })); ['dragenter', 'dragover'].forEach(eventName => area.addEventListener(eventName, () => area.classList.add('dragover'))); ['dragleave', 'drop'].forEach(eventName => area.addEventListener(eventName, () => area.classList.remove('dragover'))); area.addEventListener('drop', e => { const fileInput = area.querySelector('input[type="file"]'); fileInput.files = e.dataTransfer.files; fileInput.dispatchEvent(new Event('change', { bubbles: true })); }); }); document.querySelectorAll('.checkbox-group').forEach(group => { let maxWidth = 0; const labels = group.querySelectorAll('.tag-label'); if(labels.length === 0) return; labels.forEach(label => { if (label.offsetWidth > maxWidth) maxWidth = label.offsetWidth; }); labels.forEach(label => { label.style.width = `${maxWidth}px`; }); }); }
+        
+        // --- EVENT HANDLERS & LOGIC ---
+        function handleRatingClick(element) { const answerKey = element.closest('.rating-boxes').dataset.key; const value = element.dataset.value; element.parentElement.querySelectorAll('.rating-box').forEach(el => el.classList.remove('selected')); element.classList.add('selected'); saveAnswer(answerKey, value); scrollToNext(element.closest('.question')); }
+        function handleCheckboxClick(checkbox) { const group = checkbox.closest('.checkbox-group'); const answerKey = group.dataset.key; const limit = parseInt(group.dataset.limit, 10); if (limit === 1) { if (checkbox.checked) { group.querySelectorAll('input[type="checkbox"]').forEach(cb => { if (cb !== checkbox) { cb.checked = false; } }); } } else if (limit > 1) { const checkedInputs = group.querySelectorAll('input[type="checkbox"]:checked'); if (checkedInputs.length > limit) { checkbox.checked = false; const questionDiv = checkbox.closest('.question'); questionDiv.style.backgroundColor = '#fff0f0'; setTimeout(() => { questionDiv.style.backgroundColor = ''; }, 1000); const errorEl = questionDiv.querySelector('.error-message-inline'); if (errorEl) { errorEl.textContent = `ניתן לבחור עד ${limit} אפשרויות בלבד.`; setTimeout(() => { if (errorEl.textContent.includes('אפשרויות בלבד')) errorEl.textContent = ''; }, 3000); } return; } } const finalValues = Array.from(group.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value); saveAnswer(answerKey, finalValues); scrollToNext(checkbox.closest('.question')); }
+        function handleSelectChange(optionElement, selectWrapper, safeId) { const value = optionElement.dataset.value; const otherInput = document.getElementById(`other_${safeId}`); const answerKey = selectWrapper.dataset.answerKey; if (otherInput) { otherInput.style.display = (value === 'אחר') ? 'block' : 'none'; if (value !== 'אחר') otherInput.value = ''; } const finalValue = (value === 'אחר' && otherInput) ? `אחר: ${otherInput.value}` : value; saveAnswer(answerKey, finalValue); if (value !== 'אחר') { scrollToNext(selectWrapper.closest('.question')); } }
+        function handleTyping(inputElement) { const key = inputElement.closest('.question')?.dataset.key; if (key) { answers[key] = inputElement.value; } }
+        function handleTextBlur(inputElement) { const parentQuestion = inputElement.closest('.question'); if (!parentQuestion) return; const key = parentQuestion.dataset.key; saveAnswer(key, inputElement.value); scrollToNext(parentQuestion); }
+        
+        // --- API COMMUNICATION ---
+
+        function handleFileSelect(fileInput, answerKey, safeId) {
+            const file = fileInput.files[0];
+            const fileNameEl = document.getElementById(`file-name-${safeId}`);
+            if (!file) return;
+            
+            if (!answerKey) {
+                fileNameEl.textContent = "שגיאה: לא זוהתה שאלה.";
+                fileNameEl.classList.add('error');
+                console.error("File upload failed: answerKey parameter was not received.");
+                return;
+            }
+
+            fileNameEl.textContent = '';
+            fileNameEl.className = 'file-name-display';
+            const loadingSpan = document.createElement('span');
+            loadingSpan.textContent = 'מעלה ומאמת קובץ...';
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner-inline';
+            loadingSpan.appendChild(spinner);
+            fileNameEl.appendChild(loadingSpan);
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const fileObject = { filename: file.name, mimeType: file.type, base64: e.target.result.split(',')[1] };
+                try {
+                    const response = await fetch(`${WEB_APP_URL}?action=uploadAndValidateFile`, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Use text/plain for Apps Script web apps
+                        body: JSON.stringify(fileObject)
+                    });
+                    const result = await response.json();
+                    onFileUploadComplete(result, answerKey, safeId);
+                } catch (err) {
+                    onFileUploadComplete({success: false, error: err.message}, answerKey, safeId);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function onFileUploadComplete(response, answerKey, safeId) {
+            const fileNameEl = document.getElementById(`file-name-${safeId}`);
+            fileNameEl.innerHTML = '';
+            if (response.success) {
+                fileNameEl.textContent = response.filename;
+                fileNameEl.classList.add('success');
+                saveAnswer(answerKey, { url: response.url, filename: response.filename });
+                scrollToNext(fileNameEl.closest('.file-upload-block, .question'));
+            } else {
+                fileNameEl.textContent = `שגיאה: ${response.error}`;
+                fileNameEl.classList.add('error');
+                saveAnswer(answerKey, null);
+            }
+        }
+        
+        async function submitQuestionnaire() {
+            if (!validateRequiredQuestions()) return;
+            showView(ui.loading);
+            ui.loadingText.textContent = 'שולח תשובות...';
+            ui.submitBtn.disabled = true;
+            if (autosaveInterval) clearInterval(autosaveInterval);
+            
+            try {
+                const payload = { answers, timestamp: new Date().toISOString() };
+                const response = await fetch(`${WEB_APP_URL}?action=saveAnswers`, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.removeItem('questionnaireAutoSave');
+                    showView(ui.success);
+                } else {
+                    onSubmitError(new Error(result.message));
+                }
+            } catch (error) {
+                onSubmitError(error);
+            }
+        }
+
+        // --- CORE LOGIC (Mostly unchanged) ---
+        function saveAnswer(key, value) { if (key === undefined || key === null) { console.error("saveAnswer was called with an undefined/null key. Aborting save.", value); return; } answers[key] = Array.isArray(value) ? value.join(', ') : value; const escapedKey = key.replace(/'/g, "\\'").replace(/"/g, '\\"'); const element = document.querySelector(`[data-key="${escapedKey}"]`); if (element) { const answer = answers[key]; const isEmpty = !answer || (typeof answer === 'object' && !answer.url) || (Array.isArray(answer) && answer.length === 0) || (typeof answer === 'string' && String(answer).trim() === ''); if(!isEmpty) { element.classList.remove('invalid'); const errorEl = element.querySelector('.error-message-inline'); if (errorEl) errorEl.textContent = ''; } } updateProgressBars(); saveLocalDraft(); }
+        function validateRequiredQuestions() { let allValid = true; let firstInvalidElement = null; document.querySelectorAll('[data-required="true"]').forEach(element => { const key = element.dataset.key; if (!key) return; const answer = answers[key]; const isEmpty = !answer || (typeof answer === 'object' && !answer.url) || (Array.isArray(answer) && answer.length === 0) || (typeof answer === 'string' && String(answer).trim() === ''); element.classList.toggle('invalid', isEmpty); const errorEl = element.querySelector('.error-message-inline'); if (errorEl) { errorEl.textContent = isEmpty ? 'זוהי שאלת חובה.' : ''; } if (isEmpty && !firstInvalidElement) { allValid = false; firstInvalidElement = element; } }); if (!allValid) { firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' }); ui.error.textContent = 'יש להשלים את כל שאלות החובה (מסומנות באדום).'; ui.error.style.display = 'block'; setTimeout(() => { ui.error.style.display = 'none'; }, 5000); } return allValid; }
+        function handleScroll() { if (stickyHeaderPoint && window.scrollY > stickyHeaderPoint) { ui.progressHeader.classList.add('progress-header-sticky'); } else { ui.progressHeader.classList.remove('progress-header-sticky'); } }
+        function nextSection() { if (!validateRequiredQuestions()) return; sectionHistory.push(currentSection); setNextJumpFromCurrentAnswers(); let targetSection; if (nextSectionJump !== null) { targetSection = nextSectionJump; } else if (currentSection < sections.length - 1) { targetSection = currentSection + 1; } else { return; } nextSectionJump = null; transitionToSection(targetSection); }
+        function previousSection() { nextSectionJump = null; if (sectionHistory.length > 0) { const targetSection = sectionHistory.pop(); transitionToSection(targetSection); } }
+        function transitionToSection(targetIndex) { const questionsEl = ui.questionsContainer; questionsEl.classList.add('fade-out'); setTimeout(() => { currentSection = targetIndex; displayCurrentSection(); ui.container.scrollIntoView({ behavior: 'auto' }); questionsEl.classList.remove('fade-out'); questionsEl.classList.add('fade-in'); setTimeout(() => questionsEl.classList.remove('fade-in'), 300); }, 250); }
+        function setNextJumpFromCurrentAnswers() { const sectionName = sections[currentSection]; const items = questionnaireData[sectionName].items || []; nextSectionJump = null; for (const item of items) { if (item.type.toLowerCase().startsWith('בחירה מתוך רשימה') && item.section_jumps) { const answerKey = `${sectionName}: ${sanitizeTextForKey(item.question)}`; const answer = answers[answerKey]; const selectedValue = (answer || '').startsWith('אחר: ') ? 'אחר' : answer; if (selectedValue) { const jump = item.section_jumps.find(j => j.value === selectedValue); if (jump && jump.target_section) { const targetIndex = sections.indexOf(jump.target_section); if(targetIndex > -1) { nextSectionJump = targetIndex; return; } } } } } }
+        function updateProgressBars() { const sectionsProgress = sections.length > 0 ? ((sectionHistory.length + 1) / sections.length) * 100 : 0; ui.progressBar.style.width = `${sectionsProgress}%`; ui.sectionInfo.textContent = `מקטע ${currentSection + 1} מתוך ${sections.length}`; const sectionName = sections[currentSection]; const questionItems = (questionnaireData[sectionName]?.items || []).filter(item => item.type.toLowerCase() !== 'הוראות'); if (questionItems.length === 0) { ui.sectionProgressWrapper.innerHTML = ''; return; } let answeredCount = 0; questionItems.forEach(item => { const answerKey = `${sectionName}: ${sanitizeTextForKey(item.question)}`; const answer = answers[answerKey]; if (answer !== undefined && answer !== null && String(answer).trim() !== "" && (typeof answer !== 'object' || answer.url)) { answeredCount++; } }); const sectionProgress = questionItems.length > 0 ? (answeredCount / questionItems.length) * 100 : 0; ui.sectionProgressWrapper.innerHTML = `<div class="section-progress-container"><div class="section-progress-bar" style="width: ${sectionProgress}%;"></div></div><div class="section-progress-info">שאלות שנענו: ${answeredCount} מתוך ${questionItems.length}</div>`; }
+        function saveLocalDraft() { try { const draftData = { answers, currentSection, sectionHistory, timestamp: new Date().toISOString() }; localStorage.setItem('questionnaireAutoSave', JSON.stringify(draftData)); ui.saveIndicator.textContent = `נשמר: ${new Date().toLocaleTimeString()}`; ui.saveIndicator.style.opacity = '1'; setTimeout(() => { ui.saveIndicator.style.opacity = '0.5'; }, 3000); } catch (e) { console.error('Error saving draft:', e); } }
+        function loadLocalDraft() { try { const savedData = localStorage.getItem('questionnaireAutoSave'); if (!savedData) return null; const draftData = JSON.parse(savedData); if ((new Date() - new Date(draftData.timestamp)) / (1000 * 3600 * 24) > 7) { localStorage.removeItem('questionnaireAutoSave'); return null; } return draftData; } catch (e) { console.error('Error loading draft:', e); return null; } }
+        function checkForDraft() { const draftData = loadLocalDraft(); if (draftData && Object.keys(draftData.answers).length > 0) { const savedDate = new Date(draftData.timestamp); const dialog = document.createElement('div'); dialog.className = 'draft-dialog'; dialog.innerHTML = `<div class="draft-dialog-content"><h3>נמצאה טיוטה שמורה</h3><p>נמצאה התקדמות מה- ${savedDate.toLocaleDateString('he-IL')} בשעה ${savedDate.toLocaleTimeString('he-IL')}.</p><p style="margin-top: 10px;">האם ברצונך להמשיך מהמקום בו הפסקת?</p><div class="draft-dialog-buttons"><button id="load-draft-btn" class="btn">כן, טען טיוטה</button><button id="discard-draft-btn" class="btn" style="background: #ccc; color: #333;">לא, התחל מחדש</button></div></div>`; document.body.appendChild(dialog); document.getElementById('load-draft-btn').addEventListener('click', () => { answers = draftData.answers; sectionHistory = draftData.sectionHistory || []; dialog.remove(); transitionToSection(draftData.currentSection); startAutosave(); }); document.getElementById('discard-draft-btn').addEventListener('click', () => { localStorage.removeItem('questionnaireAutoSave'); dialog.remove(); displayCurrentSection(); startAutosave(); }); return true; } return false; }
+        function startAutosave() { if (autosaveInterval) clearInterval(autosaveInterval); saveLocalDraft(); autosaveInterval = setInterval(saveLocalDraft, 30000); }
+        function onSubmitError(error) { showView(ui.questionnaire); ui.error.style.display = 'block'; ui.error.textContent = `שגיאה בשליחת התשובות: ${error.toString()}`; ui.submitBtn.disabled = false; }
+        function updateNavigation() { ui.prevBtn.style.visibility = (sectionHistory.length === 0) ? 'hidden' : 'visible'; const isLastSection = currentSection >= sections.length - 1 && nextSectionJump === null; ui.nextBtn.style.display = isLastSection ? 'none' : 'inline-block'; ui.submitBtn.style.display = isLastSection ? 'inline-block' : 'none'; }
+        function showView(view) { [ui.intro, ui.loading, ui.questionnaire, ui.success, ui.error].forEach(v => v.style.display = 'none'); view.style.display = 'block'; }
+        function onLoadError(error) { showView(ui.error); ui.error.textContent = `שגיאה בטעינת השאלון: ${error.message}`; console.error(error); }
+        function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
+
+        // --- EVENT LISTENERS & APP START ---
+        ui.startBtn.addEventListener('click', startQuestionnaire);
+        ui.nextBtn.addEventListener('click', nextSection);
+        ui.prevBtn.addEventListener('click', previousSection);
+        ui.submitBtn.addEventListener('click', submitQuestionnaire);
+        window.addEventListener('scroll', handleScroll);
+        
+        init();
+    </script>
+</body>
+</html>
